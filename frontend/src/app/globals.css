@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables ────────────────────────────────────────────────────────── */
+:root {
+  --color-bg-deep:    #060a12;
+  --color-bg-card:    rgba(13, 21, 36, 0.85);
+  --color-bg-glass:   rgba(6, 182, 212, 0.04);
+  --color-border:     rgba(6, 182, 212, 0.15);
+  --color-border-glow:rgba(6, 182, 212, 0.4);
+  --color-text-main:  #e2eeff;
+  --color-text-dim:   #7a9abf;
+  --color-accent:     #06b6d4;
+  --color-accent-2:   #8b5cf6;
+  --color-success:    #10b981;
+  --color-error:      #ef4444;
+  --color-warning:    #f59e0b;
+}
+
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Noise texture overlay ────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── Glass Card Style ─────────────────────────────────────────────────────── */
+@layer components {
+  .glass-card {
+    @apply relative rounded-2xl backdrop-blur-xl;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 20px rgba(6, 182, 212, 0.03);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Glowing border on hover */
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    border-color: var(--color-border-glow);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 30px rgba(6, 182, 212, 0.15);
+  }
+
+  /* Stellar button */
+  .btn-stellar {
+    @apply relative overflow-hidden rounded-xl px-6 py-3 font-body font-semibold tracking-wide transition-all duration-200;
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    color: white;
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+  }
+
+  .btn-stellar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-stellar:hover::before  { opacity: 1; }
+  .btn-stellar:hover          { box-shadow: 0 0 30px rgba(6, 182, 212, 0.4); transform: translateY(-1px); }
+  .btn-stellar:active         { transform: translateY(0); }
+  .btn-stellar:disabled       { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Vote option button */
+  .btn-vote {
+    @apply relative overflow-hidden rounded-xl p-5 w-full text-left transition-all duration-300;
+    background: rgba(13, 21, 36, 0.7);
+    border: 1px solid var(--color-border);
+  }
+
+  .btn-vote:hover:not(:disabled) {
+    border-color: var(--color-border-glow);
+    background: rgba(6, 182, 212, 0.06);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .btn-vote:active:not(:disabled) { transform: translateY(0); }
+  .btn-vote:disabled               { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-vote-selected {
+    border-color: var(--color-accent) !important;
+    background: rgba(6, 182, 212, 0.1) !important;
+    box-shadow: 0 0 24px rgba(6, 182, 212, 0.2) !important;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar        { width: 6px; }
+  ::-webkit-scrollbar-track  { background: var(--color-bg-deep); }
+  ::-webkit-scrollbar-thumb  { background: rgba(6, 182, 212, 0.3); border-radius: 3px; }
+}
+
+/* ── Star field background ────────────────────────────────────────────────── */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--duration, 4s) ease-in-out infinite var(--delay, 0s);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: var(--min-opacity, 0.2); transform: scale(1); }
+  50%       { opacity: var(--max-opacity, 0.8); transform: scale(1.2); }
+}
+
+/* ── Progress bar fill animation ─────────────────────────────────────────── */
+.progress-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Toast entrance ───────────────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+.toast-enter {
+  animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Pulse ring for live indicator ───────────────────────────────────────── */
+@keyframes ping-slow {
+  0%    { transform: scale(1);   opacity: 0.6; }
+  100%  { transform: scale(2.2); opacity: 0; }
+}
+
+.live-ring {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

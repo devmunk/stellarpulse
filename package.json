@@ -1,0 +1,15 @@
+{
+  "name": "stellarpulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real-time on-chain polling powered by Stellar Soroban",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "install:frontend": "cd frontend && npm install",
+    "deploy:contract": "cd contract && bash deploy.sh",
+    "test:contract": "cd contract && cargo test"
+  },
+  "keywords": ["stellar", "soroban", "web3", "polling", "dapp", "blockchain"],
+  "license": "MIT"
+}
