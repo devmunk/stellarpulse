@@ -19,7 +19,7 @@ export interface PollOption {
   /** Display label for this option (e.g. "Web3") */
   label: string;
   /** Number of votes this option has received */
-  votes: bigint;
+  votes: number;
   /** Zero-based index in the contract */
   index: number;
 }
@@ -32,7 +32,7 @@ export interface PollData {
   /** Whether the poll is currently accepting votes */
   isActive: boolean;
   /** Total votes cast across all options */
-  totalVotes: bigint;
+  totalVotes: number;
 }
 
 // ── Transaction ───────────────────────────────────────────────────────────────

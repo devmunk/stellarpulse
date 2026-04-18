@@ -89,43 +89,67 @@ export function classifyError(err: unknown): AppError {
 /**
  * Simulate a read-only contract call and return the decoded result.
  */
-async function simulateReadOnly<T>(
-  methodName: string,
-  args: xdr.ScVal[] = [],
-): Promise<T> {
-  if (!CONTRACT_ID || CONTRACT_ID === 'YOUR_CONTRACT_ID_HERE') {
-    throw new Error('Contract ID not configured. Set NEXT_PUBLIC_CONTRACT_ID in .env.local');
-  }
+// async function simulateReadOnly<T>(
+//   methodName: string,
+//   args: xdr.ScVal[] = [],
+// ): Promise<T> {
+//   if (!CONTRACT_ID || CONTRACT_ID === 'YOUR_CONTRACT_ID_HERE') {
+//     throw new Error('Contract ID not configured. Set NEXT_PUBLIC_CONTRACT_ID in .env.local');
+//   }
 
+//   const contract = new Contract(CONTRACT_ID);
+
+//   // Use a dummy source account for simulation (no auth needed for reads)
+//   const dummySource = 'GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN';
+
+//   const account = await server.getAccount(dummySource).catch(() => ({
+//     accountId: () => dummySource,
+//     sequenceNumber: () => '0',
+//     incrementSequenceNumber: () => {},
+//   } as any));
+
+//   const tx = new TransactionBuilder(account, {
+//     fee: BASE_FEE,
+//     networkPassphrase: NETWORK_PASSPHRASE,
+//   })
+//     .addOperation(contract.call(methodName, ...args))
+//     .setTimeout(30)
+//     .build();
+
+//   const sim = await server.simulateTransaction(tx);
+
+//   if (StellarRpc.Api.isSimulationError(sim)) {
+//     throw new Error(`Simulation error: ${sim.error}`);
+//   }
+
+//   if (!sim.result) {
+//     throw new Error('No result from simulation');
+//   }
+
+//   return scValToNative(sim.result.retval);
+// }
+
+async function simulateReadOnly<T>(methodName: string, args: any[] = []): Promise<T> {
   const contract = new Contract(CONTRACT_ID);
 
-  // Use a dummy source account for simulation (no auth needed for reads)
-  const dummySource = 'GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN';
-
-  const account = await server.getAccount(dummySource).catch(() => ({
-    accountId: () => dummySource,
-    sequenceNumber: () => '0',
-    incrementSequenceNumber: () => {},
-  } as any));
-
-  const tx = new TransactionBuilder(account, {
-    fee: BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
+  const tx = new TransactionBuilder(
+    await server.getAccount("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"),
+    {
+      fee: BASE_FEE,
+      networkPassphrase: NETWORK_PASSPHRASE,
+    }
+  )
     .addOperation(contract.call(methodName, ...args))
     .setTimeout(30)
     .build();
 
   const sim = await server.simulateTransaction(tx);
 
-  if (StellarRpc.Api.isSimulationError(sim)) {
-    throw new Error(`Simulation error: ${sim.error}`);
+  if ("error" in sim) {
+    throw new Error(sim.error);
   }
 
-  if (!sim.result) {
-    throw new Error('No result from simulation');
-  }
-
+  // ✅ THIS IS THE IMPORTANT LINE
   return scValToNative(sim.result.retval) as T;
 }
 
@@ -138,21 +162,53 @@ async function simulateReadOnly<T>(
  *   - active status
  *   - total vote count
  */
+// export async function fetchPollData(): Promise<PollData> {
+//   const question = await simulateReadOnly<string>('get_question');
+
+//   const optionLabels = await simulateReadOnly<string[]>('get_options');
+
+//   const rawResults = await simulateReadOnly<any>('get_results');
+
+//   const voteCounts = new Map<number, number>();
+
+//   if (rawResults && typeof rawResults === "object") {
+//     for (const [key, value] of Object.entries(rawResults)) {
+//       voteCounts.set(Number(key), Number(value));
+//     }
+//   }
+
+//   const isActive = await simulateReadOnly<boolean>('is_active');
+
+//   const options: PollOption[] = optionLabels.map((label, index) => ({
+//     label,
+//     votes: voteCounts.get(index) ?? 0,
+//     index,
+//   }));
+
+//   const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+
+//   return { question, options, isActive, totalVotes };
+// }
 export async function fetchPollData(): Promise<PollData> {
-  const [question, optionLabels, voteCounts, isActive] = await Promise.all([
-    simulateReadOnly<string>('get_question'),
-    simulateReadOnly<string[]>('get_options'),
-    simulateReadOnly<Map<number, bigint>>('get_results'),
-    simulateReadOnly<boolean>('is_active'),
-  ]);
+  const question = await simulateReadOnly<string>('get_question');
+
+  const optionLabels = await simulateReadOnly<string[]>('get_options');
+
+  const rawResults = await simulateReadOnly<Map<number, bigint>>('get_results');
+
+  const isActive = await simulateReadOnly<boolean>('is_active');
 
   const options: PollOption[] = optionLabels.map((label, index) => ({
     label,
-    votes: voteCounts instanceof Map ? (voteCounts.get(index) ?? 0n) : 0n,
+    votes: Number(
+      rawResults instanceof Map
+        ? rawResults.get(index) ?? 0n
+        : rawResults?.[index] ?? 0
+    ),
     index,
   }));
 
-  const totalVotes = options.reduce((sum, o) => sum + o.votes, 0n);
+  const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
 
   return { question, options, isActive, totalVotes };
 }
@@ -162,7 +218,7 @@ export async function fetchPollData(): Promise<PollData> {
  */
 export async function checkHasVoted(publicKey: string): Promise<boolean> {
   try {
-    const addrVal = nativeToScVal(publicKey, { type: 'address' });
+    const addrVal = new Address(publicKey).toScVal();
     return await simulateReadOnly<boolean>('has_voted', [addrVal]);
   } catch {
     return false;
@@ -182,8 +238,7 @@ export async function buildVoteTransaction(
 ): Promise<Transaction> {
   const contract = new Contract(CONTRACT_ID);
 
-  const voterAddr = nativeToScVal(voterPublicKey, { type: 'address' });
-  const optionVal = nativeToScVal(optionIndex, { type: 'u32' });
+
 
   const account = await server.getAccount(voterPublicKey);
 
@@ -191,7 +246,11 @@ export async function buildVoteTransaction(
     fee: BASE_FEE,
     networkPassphrase: NETWORK_PASSPHRASE,
   })
-    .addOperation(contract.call('vote', voterAddr, optionVal))
+    .addOperation(contract.call(
+  'vote',
+  new Address(voterPublicKey).toScVal(),
+  nativeToScVal(optionIndex, { type: "u32" })
+))
     .setTimeout(30)
     .build();
 
