@@ -1,7 +1,7 @@
 # 🌟 StellarPulse
 
 ## 🌐 Live Demo
-Coming soon (deploying on Vercel)
+stellarpulse-7tf4c12by-deepakoff234-9571s-projects.vercel.app
 
 > **Real-time on-chain polling powered by Stellar Soroban**
 
@@ -35,6 +35,9 @@ StellarPulse is a decentralized polling dApp where users vote on live questions 
 
 ### Voting Interface
 ![Voting](./screenshots/voting.png)
+
+### Results After Voting
+![Results](./screenshots/results.png)
 
 ## 📁 Project Structure
 
