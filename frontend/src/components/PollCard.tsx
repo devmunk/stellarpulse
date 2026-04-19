@@ -28,7 +28,7 @@ export default function PollCard({
   const isVoting = txState.status === 'pending';
 
   const winnerIndex =
-    poll.totalVotes > 0n
+    poll.totalVotes > 0
       ? poll.options.reduce((best, opt) =>
           opt.votes > poll.options[best].votes ? opt.index : best,
           0,

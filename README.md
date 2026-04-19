@@ -1,5 +1,8 @@
 # 🌟 StellarPulse
 
+## 🌐 Live Demo
+Coming soon (deploying on Vercel)
+
 > **Real-time on-chain polling powered by Stellar Soroban**
 
 [![Stellar](https://img.shields.io/badge/Stellar-Testnet-blue?logo=stellar)](https://stellar.org)
@@ -24,6 +27,14 @@ StellarPulse is a decentralized polling dApp where users vote on live questions 
 | 🎨 **Cosmic Dark UI** | Animated star field, glass morphism, live result bars |
 
 ---
+
+## 📸 Screenshots
+
+### Wallet Options
+![Wallet](./screenshots/wallet.png)
+
+### Voting Interface
+![Voting](./screenshots/voting.png)
 
 ## 📁 Project Structure
 
@@ -290,17 +301,16 @@ Additional errors handled:
 
 ---
 
-## 🔍 Deployment Info
+## 🔗 Deployment Info
 
-> Fill these in after deployment:
+- **Contract ID:** CDPZNZPTESKTPW6QTM265MOUTXYWL7JPSQGHHOSB24MN35BDLYUK3Y2C  
+- **Network:** Stellar Testnet  
 
-| Field | Value |
-|-------|-------|
-| **Contract ID** | `YOUR_CONTRACT_ID_HERE` |
-| **Deployer Address** | `YOUR_DEPLOYER_ADDRESS_HERE` |
-| **Transaction Hash** | `YOUR_DEPLOY_TX_HASH_HERE` |
-| **Network** | Stellar Testnet |
-| **Explorer** | [View Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/YOUR_CONTRACT_ID_HERE) |
+- **Explorer (Contract):**  
+https://stellar.expert/explorer/testnet/contract/CDPZNZPTESKTPW6QTM265MOUTXYWL7JPSQGHHOSB24MN35BDLYUK3Y2C  
+
+- **Sample Transaction:**  
+https://stellar.expert/explorer/testnet/tx/4a20a508fb72a28d8fda84d86002ae55d52022013518d871f1fb126c3c7f7d0f
 
 ---
 
