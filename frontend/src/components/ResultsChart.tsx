@@ -4,7 +4,7 @@ import type { PollOption } from '@/types';
 
 interface ResultsChartProps {
   options: PollOption[];
-  totalVotes: bigint;
+  totalVotes: number;
 }
 
 const BAR_COLORS = [
@@ -16,9 +16,10 @@ const BAR_COLORS = [
 
 export default function ResultsChart({ options, totalVotes }: ResultsChartProps) {
   const maxVotes = options.reduce(
-    (m, o) => (o.votes > m ? o.votes : m),
-    0n,
-  );
+  (m, o) => (o.votes > m ? o.votes : m),
+  0,
+);
+
 
   return (
     <div className="space-y-3">
@@ -36,10 +37,11 @@ export default function ResultsChart({ options, totalVotes }: ResultsChartProps)
       {options.map((option, idx) => {
         const colors = BAR_COLORS[idx % BAR_COLORS.length];
         const pct =
-          totalVotes > 0n
-            ? Number((option.votes * 10000n) / totalVotes) / 100
-            : 0;
-        const isLeading = option.votes === maxVotes && maxVotes > 0n;
+        totalVotes > 0
+    ? (option.votes * 100) / totalVotes
+    : 0;
+
+const isLeading = option.votes === maxVotes && maxVotes > 0;
 
         return (
           <div key={option.index} className="flex items-center gap-3">
@@ -74,7 +76,7 @@ export default function ResultsChart({ options, totalVotes }: ResultsChartProps)
               <span className="font-mono text-xs text-slate-400">
                 {option.votes.toString()}
               </span>
-              {isLeading && totalVotes > 0n && (
+              {isLeading && totalVotes > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
                   #1
                 </span>
@@ -85,7 +87,7 @@ export default function ResultsChart({ options, totalVotes }: ResultsChartProps)
       })}
 
       {/* Empty state */}
-      {totalVotes === 0n && (
+      {totalVotes === 0 && (
         <p className="text-center text-xs text-slate-600 font-body py-2">
           No votes yet — be the first!
         </p>

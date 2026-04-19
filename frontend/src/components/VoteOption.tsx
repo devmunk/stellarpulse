@@ -4,7 +4,7 @@ import type { PollOption } from '@/types';
 
 interface VoteOptionProps {
   option: PollOption;
-  totalVotes: bigint;
+  totalVotes: number;
   hasVoted: boolean;
   isVoting: boolean;
   isWinner: boolean;
@@ -65,10 +65,10 @@ export default function VoteOption({
 }: VoteOptionProps) {
   const colors = OPTION_COLORS[option.index % OPTION_COLORS.length];
 
-  const pct =
-    totalVotes > 0n
-      ? Number((option.votes * 10000n) / totalVotes) / 100
-      : 0;
+const pct =
+  totalVotes > 0
+    ? (option.votes * 100) / totalVotes
+    : 0;
 
   const canVote = !hasVoted && !isVoting;
 

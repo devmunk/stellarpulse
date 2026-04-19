@@ -151,6 +151,7 @@ export default function HomePage() {
       <Toast
         txState={txState}
         error={displayError}
+        publicKey={wallet.publicKey}
         onDismiss={handleDismiss}
       />
     </div>

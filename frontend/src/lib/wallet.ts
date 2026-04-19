@@ -8,7 +8,7 @@
  *   - Support for Freighter, Albedo, xBull, and more
  */
 
-import type { ISupportedWallet } from '@creit.tech/stellar-wallets-kit';
+// import type { ISupportedWallet } from '@creit.tech/stellar-wallets-kit';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,7 @@ export async function connectWallet(): Promise<ConnectedWallet> {
 
   return new Promise((resolve, reject) => {
     kit.openModal({
-      onWalletSelected: async (option: ISupportedWallet) => {
+      onWalletSelected: async (option: any) => {
         try {
           kit.setWallet(option.id);
           const { address } = await kit.getAddress();
@@ -121,7 +121,7 @@ export async function signTransaction(
 /**
  * Returns available wallet modules for display in the UI.
  */
-export async function getAvailableWallets(): Promise<ISupportedWallet[]> {
+export async function getAvailableWallets(): Promise<any[]> {
   const { kit } = await getKit();
   return kit.getSupportedWallets();
 }

@@ -10,10 +10,10 @@ license = "MIT"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-soroban-sdk = { version = "20.0.0", features = ["alloc"] }
+soroban-sdk = "20.5.0"
 
 [dev-dependencies]
-soroban-sdk = { version = "20.0.0", features = ["testutils", "alloc"] }
+soroban-sdk = "20.5.0"
 
 [profile.release]
 opt-level = "z"

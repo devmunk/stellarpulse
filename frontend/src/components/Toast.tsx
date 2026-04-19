@@ -7,10 +7,12 @@ import type { TxState, AppError } from '@/types';
 interface ToastProps {
   txState: TxState;
   error: AppError | null;
+  publicKey: string | null;  
   onDismiss: () => void;
 }
 
-export default function Toast({ txState, error, onDismiss }: ToastProps) {
+export default function Toast({ txState, error, publicKey, onDismiss }: ToastProps) {
+  // console.log("Toast publicKey:", publicKey);
   const isVisible =
     txState.status !== 'idle' || error !== null;
 
@@ -21,6 +23,7 @@ export default function Toast({ txState, error, onDismiss }: ToastProps) {
       return () => clearTimeout(t);
     }
   }, [txState.status, onDismiss]);
+  
 
   if (!isVisible) return null;
 
@@ -85,19 +88,17 @@ export default function Toast({ txState, error, onDismiss }: ToastProps) {
           )}
 
           {/* Help text for specific errors */}
-          {error?.type === 'INSUFFICIENT_BALANCE' && (
-            <a
-              href="https://friendbot.stellar.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-xs text-amber-400 hover:text-amber-300 transition-colors"
-            >
-              Fund with Friendbot (testnet)
-              <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          )}
+          {error?.type === 'INSUFFICIENT_BALANCE' && publicKey && (
+              <a
+                href={`https://friendbot.stellar.org?addr=${publicKey}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+              >
+                Fund with Friendbot (testnet)
+              </a>
+            )}
+          
         </div>
 
         {/* Dismiss button */}

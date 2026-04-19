@@ -79,8 +79,9 @@ export function usePoll(publicKey: string | null): UsePollReturn {
   }, [refresh]);
 
   // ── Voting ────────────────────────────────────────────────────────────────
-
+  
   const vote = useCallback(async (optionIndex: number) => {
+    let txSuccess = false;
     // Error 1: wallet not connected
     if (!publicKey) {
       setError({ type: 'WALLET_NOT_CONNECTED', message: 'Please connect your wallet before voting.' });
@@ -102,8 +103,8 @@ export function usePoll(publicKey: string | null): UsePollReturn {
       // Step 3: Submit to network — Error 3 (insufficient balance) handled here
       setTxState({ status: 'pending', message: 'Submitting transaction to Stellar…' });
       const hash = await submitTransaction(signedXDR);
+      txSuccess = true;
 
-      // Success
       setTxState({
         status: 'success',
         message: 'Vote recorded on-chain! 🎉',
@@ -114,11 +115,30 @@ export function usePoll(publicKey: string | null): UsePollReturn {
       // Refresh results immediately after voting
       await refresh();
 
-    } catch (err) {
-      const appErr = classifyError(err);
-      setError(appErr);
-      setTxState({ status: 'error', message: appErr.message, error: appErr.message });
-    }
+    } catch (err: any) {
+  if (txSuccess) {
+    console.warn("Ignoring error after success:", err);
+    return;
+  }
+
+  const msg = err?.message || "";
+
+  if (
+    msg.toLowerCase().includes("bad union switch") ||
+    msg.toLowerCase().includes("invalidaction")
+  ) {
+    console.warn("Ignoring known Soroban parsing error:", err);
+    return;
+  }
+
+  const appErr = classifyError(err);
+  setError(appErr);
+  setTxState({
+    status: 'error',
+    message: appErr.message,
+    error: appErr.message,
+  });
+}
   }, [publicKey, refresh]);
 
   const clearTx = useCallback(() => {

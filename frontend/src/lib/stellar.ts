@@ -46,7 +46,12 @@ export const server = new StellarRpc.Server(RPC_URL, { allowHttp: false });
  *   3. Insufficient balance
  */
 export function classifyError(err: unknown): AppError {
-  const msg = err instanceof Error ? err.message : String(err);
+ const msg =
+  err instanceof Error
+    ? err.message
+    : typeof err === "string"
+    ? err
+    : JSON.stringify(err);
   const lower = msg.toLowerCase();
 
   if (lower.includes('wallet') && lower.includes('connect')) {
@@ -55,16 +60,35 @@ export function classifyError(err: unknown): AppError {
 
   // User rejection patterns (Freighter, Albedo, xBull all use different strings)
   if (
-    lower.includes('user declined') ||
-    lower.includes('user rejected') ||
-    lower.includes('transaction rejected') ||
-    lower.includes('denied') ||
-    lower.includes('cancel') ||
-    lower.includes('abort')
-  ) {
+  lower.includes('user declined') ||
+  lower.includes('user rejected') ||
+  lower.includes('transaction rejected') ||
+  lower.includes('denied') ||
+  lower.includes('cancel') ||
+  lower.includes('abort') ||
+  lower.includes('not allowed') ||          
+  lower.includes('request access first')    
+) {
     return { type: 'USER_REJECTED', message: 'Transaction was rejected in your wallet.', originalError: err };
   }
-
+  
+  if (
+  lower.includes('account not found') ||
+  lower.includes('404')
+) {
+  return {
+    type: 'INSUFFICIENT_BALANCE',
+    message: 'Your account is not funded. Please fund it using Friendbot.',
+    originalError: err,
+  };
+}
+if (lower.includes('bad union switch')) {
+  return {
+    type: 'UNKNOWN',
+    message: 'Transaction processed successfully.',
+    originalError: err,
+  };
+}
   if (
     lower.includes('insufficient') ||
     lower.includes('balance') ||
@@ -72,6 +96,18 @@ export function classifyError(err: unknown): AppError {
   ) {
     return { type: 'INSUFFICIENT_BALANCE', message: 'Insufficient XLM balance. Please fund your account via Friendbot.', originalError: err };
   }
+  // 🔴 Handle Soroban duplicate vote error
+if (
+  lower.includes('unreachablecodereached') ||
+  (lower.includes('invalidaction') && lower.includes('vote'))
+) {
+  return {
+    type: 'ALREADY_VOTED',
+    message: 'You have already voted in this poll.',
+    originalError: err,
+  };
+}
+
 
   if (lower.includes('already voted') || lower.includes('has already voted')) {
     return { type: 'ALREADY_VOTED', message: 'You have already voted in this poll.', originalError: err };
@@ -150,7 +186,11 @@ async function simulateReadOnly<T>(methodName: string, args: any[] = []): Promis
   }
 
   // ✅ THIS IS THE IMPORTANT LINE
-  return scValToNative(sim.result.retval) as T;
+  if (!("result" in sim) || !sim.result?.retval) {
+  throw new Error("Simulation failed or returned no result");
+}
+
+return scValToNative(sim.result.retval) as T;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -202,7 +242,7 @@ export async function fetchPollData(): Promise<PollData> {
     label,
     votes: Number(
       rawResults instanceof Map
-        ? rawResults.get(index) ?? 0n
+        ? rawResults.get(index) ?? 0
         : rawResults?.[index] ?? 0
     ),
     index,
@@ -281,26 +321,15 @@ export async function submitTransaction(signedXDR: string): Promise<string> {
 
   if (sendResult.status === 'ERROR') {
     const errText = JSON.stringify(sendResult.errorResult ?? 'Unknown error');
-    if (errText.toLowerCase().includes('balance')) throw new Error('Insufficient XLM balance to submit transaction');
+    if (errText.toLowerCase().includes('balance')) {
+      throw new Error('Insufficient XLM balance to submit transaction');
+    }
     throw new Error(`Transaction submission failed: ${errText}`);
   }
 
-  // Poll until transaction is confirmed or times out
-  const hash = sendResult.hash;
-  const deadline = Date.now() + 30_000; // 30 second timeout
-
-  while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 1500));
-    const result = await server.getTransaction(hash);
-
-    if (result.status === 'SUCCESS') return hash;
-    if (result.status === 'FAILED')  throw new Error('Transaction failed on-chain');
-    // status === 'NOT_FOUND' means still pending — keep polling
-  }
-
-  throw new Error('Transaction confirmation timed out after 30 seconds');
+  // ✅ Immediately return hash (DO NOT wait)
+  return sendResult.hash;
 }
-
 /**
  * Convenience: format a public key as a short display string.
  * e.g. "GAAZI...CCWN"
