@@ -99,7 +99,7 @@ stellarpulse/
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/stellarpulse.git
+git clone https://github.com/devmunk/stellarpulse.git
 cd stellarpulse
 
 # Install frontend dependencies
