@@ -1,7 +1,7 @@
 # 🌟 StellarPulse
 
 ## 🌐 Live Demo
-stellarpulse-7tf4c12by-deepakoff234-9571s-projects.vercel.app
+👉 https://stellarpulse-7tf4c12by-deepakoff234-9571s-projects.vercel.app
 
 > **Real-time on-chain polling powered by Stellar Soroban**
 
